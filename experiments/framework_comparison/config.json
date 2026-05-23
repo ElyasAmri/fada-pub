@@ -1,0 +1,111 @@
+{
+  "models": [
+    {
+      "id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "short_name": "qwen2.5-vl-7b",
+      "frameworks": ["unsloth", "llamafactory", "swift", "axolotl"]
+    },
+    {
+      "id": "Qwen/Qwen3-VL-8B-Instruct",
+      "short_name": "qwen3-vl-8b",
+      "frameworks": ["unsloth", "llamafactory", "swift", "axolotl"]
+    },
+    {
+      "id": "Qwen/Qwen3.5-9B",
+      "short_name": "qwen3.5-9b",
+      "frameworks": ["unsloth", "llamafactory", "swift"]
+    },
+    {
+      "id": "OpenGVLab/InternVL3-8B",
+      "short_name": "internvl3-8b",
+      "frameworks": ["llamafactory", "swift"]
+    },
+    {
+      "id": "OpenGVLab/InternVL3_5-8B",
+      "short_name": "internvl3.5-8b",
+      "frameworks": ["llamafactory", "swift"]
+    },
+    {
+      "id": "openbmb/MiniCPM-V-2_6",
+      "short_name": "minicpm-v-2.6",
+      "frameworks": ["llamafactory", "swift"]
+    },
+    {
+      "id": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+      "short_name": "mistral-small-3.2-24b",
+      "frameworks": ["unsloth", "axolotl"]
+    },
+    {
+      "id": "allenai/Molmo2-8B",
+      "short_name": "molmo2-8b",
+      "frameworks": ["llamafactory", "swift"]
+    },
+    {
+      "id": "THUDM/glm-4v-9b",
+      "short_name": "glm-4v-9b",
+      "frameworks": ["llamafactory", "swift"]
+    },
+    {
+      "id": "microsoft/Phi-4-multimodal-instruct",
+      "short_name": "phi-4-multimodal",
+      "frameworks": ["unsloth", "llamafactory"]
+    },
+    {
+      "id": "google/gemma-4-E4B-it",
+      "short_name": "gemma-4-e4b",
+      "frameworks": ["unsloth", "llamafactory", "swift", "axolotl"]
+    }
+  ],
+  "lora": {
+    "r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": "all-linear",
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+  },
+  "training": {
+    "num_train_epochs": 3,
+    "per_device_train_batch_size": 16,
+    "per_device_eval_batch_size": 16,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 2e-4,
+    "warmup_ratio": 0.03,
+    "lr_scheduler_type": "cosine",
+    "bf16": true,
+    "optim": "adamw_8bit",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "gradient_checkpointing": true,
+    "logging_steps": 10,
+    "save_strategy": "steps",
+    "save_steps": 500,
+    "save_total_limit": 3,
+    "eval_strategy": "steps",
+    "eval_steps": 100,
+    "dataloader_num_workers": 8,
+    "max_seq_length": 4096,
+    "max_samples": 10000
+  },
+  "quantization": {
+    "load_in_4bit": true,
+    "bnb_4bit_quant_type": "nf4",
+    "bnb_4bit_use_double_quant": true,
+    "bnb_4bit_compute_dtype": "bfloat16"
+  },
+  "data": {
+    "train_file": "data/vlm_training/gt_train.jsonl",
+    "val_file": "data/vlm_training/gt_val.jsonl",
+    "train_file_sharegpt": "data/vlm_training/gt_train_sharegpt.jsonl",
+    "val_file_sharegpt": "data/vlm_training/gt_val_sharegpt.jsonl",
+    "data_root": "data/Fetal Ultrasound",
+    "num_train_samples": 121240,
+    "num_val_samples": 15152,
+    "seed": 42
+  },
+  "eval": {
+    "vllm_port": 8000,
+    "vllm_max_model_len": 2048,
+    "vllm_gpu_util": 0.9
+  }
+}

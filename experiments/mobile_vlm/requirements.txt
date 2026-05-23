@@ -1,0 +1,23 @@
+# Mobile VLM Benchmarking Dependencies
+
+# Core
+torch>=2.0.0
+transformers>=4.45.0
+Pillow>=10.0.0
+mlflow>=2.10.0
+
+# Quantization support
+bitsandbytes>=0.41.0
+accelerate>=0.25.0
+
+# Vision processing
+torchvision>=0.15.0
+
+# Model-specific (install as needed)
+moondream>=2.0.0  # For Moondream2
+
+# Optional: Flash attention for faster inference (requires CUDA 11.6+)
+# flash-attn>=2.0.0
+
+# Note: Models use trust_remote_code=True and download
+# model-specific code from HuggingFace

@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+norecursedirs = ["huggingface", "venv", ".git", "node_modules", "data"]
+collect_ignore_glob = ["**/huggingface*"]

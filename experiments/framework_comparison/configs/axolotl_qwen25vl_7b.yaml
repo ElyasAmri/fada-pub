@@ -1,0 +1,53 @@
+base_model: Qwen/Qwen2.5-VL-7B-Instruct
+processor_type: AutoProcessor
+
+# Multimodal settings
+skip_prepare_dataset: true
+remove_unused_columns: false
+sample_packing: false
+
+chat_template: qwen2_vl
+
+datasets:
+  - path: /home/ubuntu/fada-results/axolotl_data/train.json
+    type: chat_template
+    split: train
+    field_messages: messages
+
+val_set_size: 0.05
+output_dir: /home/ubuntu/fada-results/axolotl_qwen2.5-vl-7b
+
+# QLoRA 4-bit
+adapter: qlora
+load_in_4bit: true
+
+sequence_len: 4096
+pad_to_sequence_len: false
+
+# LoRA hyperparameters
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target_linear: true
+
+gradient_accumulation_steps: 8
+micro_batch_size: 2
+num_epochs: 3
+optimizer: adamw_bnb_8bit
+lr_scheduler: cosine
+learning_rate: 0.0002
+
+bf16: true
+tf32: true
+
+gradient_checkpointing: true
+logging_steps: 10
+flash_attention: true
+
+warmup_ratio: 0.03
+evals_per_epoch: 1
+saves_per_epoch: 1
+weight_decay: 0.01
+max_grad_norm: 1.0
+
+seed: 42

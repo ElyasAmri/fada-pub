@@ -1,0 +1,20 @@
+{
+	"nodes":[
+		{"id":"project-overview","type":"text","text":"# FADA Project\n\n[[Project Overview]]\n\nFetal Anomaly Detection Algorithm - VLM evaluation for ultrasound analysis","x":-400,"y":-360,"width":600,"height":200,"color":"6"},
+		{"id":"phase-1","type":"text","text":"# PHASE 1\n## VLM Benchmarks\n\nTested 50+ VLM models to identify best performer for fetal ultrasound VQA.\n\n---\n- [[VLM Models Tested]]\n- [[Evaluation Methodology]]\n- [[VLM Testing Results]]","x":-400,"y":0,"width":360,"height":320,"color":"4"},
+		{"id":"phase-2","type":"text","text":"# PHASE 2\n## Fine-Tuning\n\nFine-tune MiniCPM-V-2.6 using LoRA adapters on vast.ai infrastructure.\n\n---\n- [[Fine-Tuning Approach]]\n- [[Vastai CLI Implementation]]","x":120,"y":0,"width":440,"height":320,"color":"3"},
+		{"id":"phase-3","type":"text","text":"# PHASE 3\n## Further Benchmarks\n\nPost-fine-tuning evaluation and comparison.","x":640,"y":0,"width":440,"height":320},
+		{"id":"phase-4","type":"text","text":"# PHASE 4\n## Mobile Deployment\n\nOptimize and deploy model for mobile inference.","x":1160,"y":0,"width":440,"height":320},
+		{"id":"phase-5","type":"text","text":"# PHASE 5\n## Web/App Demo\n\nFinal interactive demo for research presentation.","x":1680,"y":0,"width":440,"height":320},
+		{"id":"research-group","type":"text","text":"# Research Foundation\n\n**Notes:**\n- [[Literature Review]]\n- [[Bibliography]]\n\nDeep learning approaches for fetal ultrasound classification. 15+ papers reviewed.","x":-400,"y":400,"width":600,"height":240,"color":"5"},
+		{"id":"paper-outline","type":"text","text":"# Output\n\n[[Paper Outline]]\n\nComparative Evaluation of Vision-Language Models for Fetal Ultrasound VQA","x":-400,"y":720,"width":600,"height":200,"color":"3"},
+		{"id":"tasks-widget","type":"file","file":"_widgets/Active Tasks.md","x":300,"y":400,"width":520,"height":360,"color":"1"}
+	],
+	"edges":[
+		{"id":"edge-phase1-2","fromNode":"phase-1","fromSide":"right","toNode":"phase-2","toSide":"left"},
+		{"id":"edge-phase2-3","fromNode":"phase-2","fromSide":"right","toNode":"phase-3","toSide":"left"},
+		{"id":"edge-phase3-4","fromNode":"phase-3","fromSide":"right","toNode":"phase-4","toSide":"left"},
+		{"id":"edge-phase4-5","fromNode":"phase-4","fromSide":"right","toNode":"phase-5","toSide":"left"},
+		{"id":"edge-research-paper","fromNode":"research-group","fromSide":"bottom","toNode":"paper-outline","toSide":"top"}
+	]
+}

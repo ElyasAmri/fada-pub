@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*_executed.ipynb
+*_output.ipynb
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
+
+# ML model weights (large binary files -- use HuggingFace Hub)
+*.pth
+*.pt
+*.h5
+*.pkl
+*.safetensors
+*.gguf
+*.litertlm
+*.bin
+
+# Training run artifacts
+experiments/framework_comparison/runs/
+experiments/fine_tuning/runs/
+experiments/unsloth_vlm/runs/
+experiments/api_models/results/
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+
+# Raw image data (hosted on HuggingFace datasets)
+data/Fetal Ultrasound/
+data/archive/
+
+# Internal versioning state
+.omc/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+.next/
+out/
+
+# Logs
+*.log
+
+# Android build
+app/android/.gradle/
+app/android/app/build/
+app/android/build/
+app/android/local.properties
+
+# Misc
+*.zip
+.cache/
+.pytest_cache/

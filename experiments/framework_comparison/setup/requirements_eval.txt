@@ -1,0 +1,8 @@
+vllm>=0.8.0
+transformers>=4.48.0
+peft>=0.14.0
+sentence-transformers
+scikit-learn
+openpyxl
+bert-score
+pillow

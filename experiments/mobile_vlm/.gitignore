@@ -1,0 +1,14 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Benchmark artifacts
+benchmark_results.json
+*.log
+
+# Model cache
+.cache/
+
+# Test data (optional - comment out if you want to track test images)
+# data/test_images/

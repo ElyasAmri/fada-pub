@@ -1,0 +1,405 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{longtable}
+
+% Page geometry
+\geometry{margin=1in}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\title{Comparative Evaluation of Vision-Language Models\\for Fetal Ultrasound Visual Question Answering}
+\author{FADA Project Team}
+\date{March 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present the largest benchmark of vision-language models (VLMs) for fetal ultrasound image analysis, evaluating 42 models from 13 families across 14 anatomical categories. Each model answers 8 standardized clinical questions per image on a test set of 1,894 images (15,152 total responses per model). Using a multi-metric scoring pipeline combining per-question specialized metrics with embedding similarity against sonographer ground truth, we find that \texttt{gemma-3-12b-it} achieves the highest zero-shot primary score (0.3596), followed by \texttt{Qwen3.5-35B-A3B} (0.3566) and \texttt{InternVL3\_5-4B} (0.3492). Our analysis reveals several findings: (1) model size does not predict performance---smaller models frequently outperform larger variants within the same family; (2) current-generation models consistently outperform their predecessors by 16--19\%; (3) medical-specialized models underperform general-purpose alternatives; (4) mixture-of-experts architectures achieve competitive accuracy with significantly fewer active parameters; and (5) reasoning/thinking modes degrade performance on structured VQA tasks. All models plateau at approximately 36\% primary score, suggesting a ceiling for zero-shot evaluation. \textbf{Research prototype---not for clinical use.}
+\end{abstract}
+
+\section{Introduction}
+
+Prenatal ultrasound screening is a cornerstone of obstetric care, requiring skilled sonographers to identify anatomical structures, assess fetal development, and detect anomalies. The emergence of vision-language models (VLMs) capable of processing both images and text opens the possibility of automated assistance in ultrasound interpretation.
+
+However, no large-scale benchmark exists for evaluating VLMs on fetal ultrasound visual question answering (VQA). Existing medical VQA benchmarks (PathVQA, SLAKE, VQA-RAD) focus on radiology and pathology, while ultrasound-specific work has been limited to classification tasks. The recent U2-BENCH benchmark (ICLR 2026) addresses ultrasound understanding broadly but does not focus on fetal anatomy or open-ended clinical questions.
+
+This work addresses this gap with three contributions:
+\begin{enumerate}
+    \item The largest fetal ultrasound VLM benchmark: 42 models evaluated on 19,019 images across 14 anatomical categories with 8 clinical questions per image.
+    \item A multi-metric scoring pipeline with per-question specialized evaluation against sonographer ground truth.
+    \item Systematic analysis of model families, size scaling, architectural choices (MoE, thinking modes), and the impact of medical specialization.
+\end{enumerate}
+
+\textbf{Disclaimer:} This is a research prototype and is \textbf{not intended for clinical use}.
+
+\section{Dataset}
+
+\subsection{Image Corpus}
+
+The evaluation dataset comprises 19,019 fetal ultrasound images across 14 anatomical categories (Table~\ref{tab:dataset}).
+
+\begin{table}[H]
+\centering
+\caption{Dataset distribution by anatomical category.}
+\label{tab:dataset}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Category} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Total} \\
+\midrule
+Abdomen & 1,940 & 242 & 242 & 2,424 \\
+Aorta & 1,048 & 130 & 130 & 1,308 \\
+Cervical & 400 & 50 & 50 & 500 \\
+Cervix & 1,302 & 162 & 162 & 1,626 \\
+CRL-View & 1,262 & 157 & 157 & 1,576 \\
+Femur & 933 & 116 & 116 & 1,165 \\
+Non-standard NT & 391 & 48 & 48 & 487 \\
+NT-View & 1,616 & 202 & 202 & 2,020 \\
+Public Symphysis & 1,088 & 135 & 135 & 1,358 \\
+Standard NT & 1,208 & 150 & 150 & 1,508 \\
+Thorax & 1,435 & 179 & 179 & 1,793 \\
+Trans-cerebellum & 548 & 68 & 68 & 684 \\
+Trans-thalamic & 1,253 & 156 & 156 & 1,565 \\
+Trans-ventricular & 468 & 58 & 58 & 584 \\
+\midrule
+\textbf{Total} & \textbf{15,231} & \textbf{1,894} & \textbf{1,894} & \textbf{19,019} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The dataset was split using stratified sampling with an 80/10/10 train/validation/test ratio and a fixed random seed (42) to ensure reproducibility.
+
+\subsection{Ground Truth Annotations}
+
+A qualified sonographer annotated 18,936 images with responses to 8 standardized clinical questions:
+
+\begin{enumerate}
+    \item \textbf{Q1: Anatomical Structures} -- Identification of visible anatomical structures
+    \item \textbf{Q2: Fetal Orientation} -- Assessment of fetal position and presentation
+    \item \textbf{Q3: Imaging Plane} -- Evaluation of the ultrasound imaging plane
+    \item \textbf{Q4: Biometric Measurements} -- Analysis of measurable biometric parameters
+    \item \textbf{Q5: Gestational Age} -- Estimation of gestational age
+    \item \textbf{Q6: Image Quality} -- Assessment of image quality for diagnostic use
+    \item \textbf{Q7: Normality Assessment} -- Determination of normal vs.\ abnormal findings
+    \item \textbf{Q8: Clinical Recommendations} -- Suggested clinical follow-up actions
+\end{enumerate}
+
+\section{Methodology}
+
+\subsection{Model Selection}
+
+We evaluated 42 VLMs from 13 model families, spanning 256M to 35B parameters (Table~\ref{tab:families}).
+
+\begin{table}[H]
+\centering
+\caption{Model families evaluated.}
+\label{tab:families}
+\begin{tabular}{llrl}
+\toprule
+\textbf{Family} & \textbf{Generation} & \textbf{Count} & \textbf{Size Range} \\
+\midrule
+Gemma 3 & Current & 3 & 4B--27B \\
+Qwen3.5 & Current & 5 & 0.8B--35B \\
+Qwen3-VL & Current & 4 & 2B--8B \\
+InternVL3.5 & Current & 2 & 4B--8B \\
+MiniCPM & Current & 3 & 8B \\
+Kimi-VL & Current & 2 & 3B (MoE) \\
+Qwen2.5-VL & Previous & 3 & 3B--7B \\
+Qwen2-VL & Previous & 2 & 2B--7B \\
+InternVL2 & Previous & 4 & 1B--8B \\
+SmolVLM & Previous & 3 & 256M--2.2B \\
+Phi & Previous & 2 & 4B--14B \\
+MedGemma & Medical & 1 & 4B \\
+Other & Mixed & 8 & 7B--25B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Models were selected to cover: (a) the current state-of-the-art across major open-weight VLM families, (b) multiple size points within families to study scaling behavior, (c) medical-specialized variants for domain comparison, and (d) architectural variants including mixture-of-experts (MoE) and thinking/reasoning modes.
+
+\subsection{Evaluation Framework}
+
+All models were deployed using vLLM with an OpenAI-compatible API on RCCG H100 GPU machines. The evaluation pipeline:
+
+\begin{itemize}
+    \item Processes each test image with all 8 questions sequentially
+    \item Supports checkpoint/resume for fault tolerance
+    \item Runs across 8 machines in parallel (one model per machine)
+    \item Produces 15,152 responses per model (1,894 images $\times$ 8 questions)
+\end{itemize}
+
+\subsection{Scoring Pipeline}
+
+Responses are scored using two complementary approaches:
+
+\subsubsection{Per-Question Specialized Metrics}
+
+Each question uses a metric tailored to its answer structure:
+
+\begin{table}[H]
+\centering
+\caption{Per-question scoring metrics.}
+\label{tab:metrics}
+\begin{tabular}{lll}
+\toprule
+\textbf{Question} & \textbf{Metric} & \textbf{Description} \\
+\midrule
+Q1: Anatomical Structures & set\_f1 & F1 over extracted structure sets \\
+Q2: Fetal Orientation & relaxed\_accuracy & Keyword matching with synonyms \\
+Q3: Imaging Plane & relaxed\_accuracy & Keyword matching with synonyms \\
+Q4: Biometric Measurements & keyword\_f1 & F1 over measurement terms \\
+Q5: Gestational Age & exact\_bin\_match & Trimester-level age binning \\
+Q6: Image Quality & exact\_tier\_match & Quality tier classification \\
+Q7: Normality Assessment & exact\_match\_binary & Normal/abnormal classification \\
+Q8: Clinical Recommendations & bertscore\_f1 & Semantic similarity (BERTScore) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The \textbf{primary score} is the mean of per-question primary metrics across all samples.
+
+\subsubsection{Embedding Similarity}
+
+As a complementary metric, we compute cosine similarity between model responses and ground truth annotations using sentence-transformers embeddings. This captures semantic agreement even when exact terminology differs.
+
+\section{Results}
+
+\subsection{Overall Rankings}
+
+Table~\ref{tab:top15} presents the top 15 models by primary score.
+
+\begin{table}[H]
+\centering
+\caption{Top 15 models by primary score (zero-shot, 1,894 test images).}
+\label{tab:top15}
+\begin{tabular}{rlrrr}
+\toprule
+\textbf{Rank} & \textbf{Model} & \textbf{Size} & \textbf{Primary} & \textbf{EmbedSim} \\
+\midrule
+1 & google/gemma-3-12b-it & 12B & 0.3596 & 0.3642 \\
+2 & Qwen/Qwen3.5-35B-A3B & 35B & 0.3566 & 0.3572 \\
+3 & OpenGVLab/InternVL3\_5-4B & 4B & 0.3492 & 0.3947 \\
+4 & openbmb/MiniCPM-V-4\_5 & 8B & 0.3403 & 0.4058 \\
+5 & Qwen/Qwen3.5-4B & 4B & 0.3397 & 0.3630 \\
+6 & OpenGVLab/InternVL3\_5-8B & 8B & 0.3386 & 0.4066 \\
+7 & Qwen/Qwen3.5-9B & 9B & 0.3359 & 0.3665 \\
+8 & Qwen/Qwen3-VL-2B-Instruct & 2B & 0.3354 & 0.4012 \\
+9 & moonshotai/Kimi-VL-A3B & 3B & 0.3329 & 0.4056 \\
+10 & mistralai/Mistral-Small-3.1-24B & 24B & 0.3264 & 0.4024 \\
+11 & google/gemma-3-4b-it & 4B & 0.3249 & 0.3401 \\
+12 & Qwen/Qwen3-VL-8B-Instruct & 8B & 0.3238 & 0.3866 \\
+13 & google/gemma-3-27b-it & 27B & 0.3193 & 0.3687 \\
+14 & JZPeterPan/MedVLM-R1 & 7B & 0.3179 & 0.3792 \\
+15 & Qwen/Qwen3.5-0.8B & 0.8B & 0.3177 & 0.3771 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Scores range from 0.1201 (Phi-4-multimodal) to 0.3596 (gemma-3-12b-it). The majority of functional models (36 of 42) cluster in the 0.21--0.36 band. Three models (ranks 40--42) produced predominantly error responses due to inference failures.
+
+\subsection{Per-Question Analysis}
+
+Table~\ref{tab:perquestion} shows the per-question breakdown for the top-scoring model.
+
+\begin{table}[H]
+\centering
+\caption{Per-question scores for gemma-3-12b-it.}
+\label{tab:perquestion}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Question} & \textbf{Metric} & \textbf{Primary} & \textbf{EmbedSim} \\
+\midrule
+Q6: Image Quality & exact\_tier\_match & 0.769 & 0.332 \\
+Q8: Clinical Recommendations & bertscore\_f1 & 0.764 & 0.456 \\
+Q5: Gestational Age & exact\_bin\_match & 0.452 & 0.413 \\
+Q7: Normality Assessment & exact\_match\_binary & 0.335 & 0.295 \\
+Q4: Biometric Measurements & keyword\_f1 & 0.182 & 0.180 \\
+Q2: Fetal Orientation & relaxed\_accuracy & 0.131 & 0.430 \\
+Q3: Imaging Plane & relaxed\_accuracy & 0.128 & 0.338 \\
+Q1: Anatomical Structures & set\_f1 & 0.116 & 0.471 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Questions Q6 (image quality assessment) and Q8 (clinical recommendations) are effectively solved, with primary scores exceeding 76\%. Q5 (gestational age) achieves 45\% exact bin match, indicating models can estimate trimester-level age. Q1--Q3 exhibit a notable divergence: low primary scores (11--13\%) but high embedding similarity (34--47\%), suggesting models describe the correct concepts using different terminology than the ground truth annotations. Q4 (biometric measurements) is the hardest question on both metrics, reflecting the difficulty of identifying specific numerical measurements from images alone.
+
+\subsection{Per-Category Analysis}
+
+Table~\ref{tab:percategory} shows the per-category breakdown for the top-scoring model.
+
+\begin{table}[H]
+\centering
+\caption{Per-category scores for gemma-3-12b-it.}
+\label{tab:percategory}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Category} & \textbf{Primary} & \textbf{EmbedSim} & \textbf{Samples} \\
+\midrule
+Trans-thalamic & 0.434 & 0.342 & 1,232 \\
+CRL-View & 0.424 & 0.332 & 1,576 \\
+Trans-ventricular & 0.415 & 0.335 & 464 \\
+Femur & 0.387 & 0.350 & 904 \\
+Trans-cerebellum & 0.373 & 0.368 & 544 \\
+Abdomen & 0.364 & 0.350 & 1,936 \\
+Standard NT & 0.360 & 0.386 & 1,192 \\
+NT-View & 0.359 & 0.416 & 1,616 \\
+Cervical & 0.354 & 0.356 & 400 \\
+Thorax & 0.349 & 0.395 & 1,432 \\
+Public Symphysis & 0.327 & 0.366 & 1,080 \\
+Cervix & 0.320 & 0.406 & 1,288 \\
+Non-standard NT & 0.258 & 0.379 & 376 \\
+Aorta & 0.246 & 0.286 & 1,040 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Brain views (Trans-thalamic, Trans-ventricular, Trans-cerebellum) and CRL-View score highest, likely due to distinctive anatomical landmarks that are well-represented in VLM training data. Aorta is consistently the hardest category across all models---the fetal aorta is a small, technically demanding view. Non-standard NT is second-hardest, reflecting its inherent ambiguity as an abnormal variant of a normal view.
+
+\subsection{Model Family Comparison}
+
+Table~\ref{tab:families_results} compares performance across model families.
+
+\begin{table}[H]
+\centering
+\caption{Model family comparison (ordered by best primary score).}
+\label{tab:families_results}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Family} & \textbf{Models} & \textbf{Best} & \textbf{Average} & \textbf{Best Model} \\
+\midrule
+Gemma 3 & 3 & 0.360 & 0.335 & gemma-3-12b-it \\
+Qwen3.5 & 5 & 0.357 & 0.333 & Qwen3.5-35B-A3B \\
+InternVL3.5 & 2 & 0.349 & 0.344 & InternVL3\_5-4B \\
+MiniCPM & 3 & 0.340 & 0.307 & MiniCPM-V-4\_5 \\
+Qwen3-VL & 4 & 0.335 & 0.321 & Qwen3-VL-2B \\
+Kimi-VL & 2 & 0.333 & 0.321 & Kimi-VL-A3B \\
+Qwen2-VL & 2 & 0.318 & 0.302 & Qwen2-VL-2B \\
+MedGemma & 1 & 0.299 & 0.299 & medgemma-4b-it \\
+InternVL2 & 4 & 0.302 & 0.289 & InternVL2-8B \\
+Qwen2.5 & 3 & 0.290 & 0.276 & Qwen2.5-VL-7B \\
+SmolVLM & 3 & 0.287 & 0.246 & SmolVLM2-2.2B \\
+Gemma 3n & 1 & 0.277 & 0.277 & gemma-3n-E4B-it \\
+Phi & 2 & 0.259 & 0.189 & Phi-3.5-vision \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+InternVL3.5 has the highest average score (0.344) despite having only two models, indicating consistent quality. Gemma~3 and Qwen3.5 lead on best individual score. The Phi family has the lowest average due to Phi-4-multimodal's inference failures.
+
+\section{Discussion}
+
+\subsection{Size Does Not Predict Performance}
+
+Contrary to the general trend in language modeling, larger models frequently underperform smaller variants within the same family on this task:
+
+\begin{itemize}
+    \item \textbf{Gemma 3:} 12B (0.360) $>$ 27B (0.319), a 13\% advantage for the smaller model
+    \item \textbf{InternVL3.5:} 4B (0.349) $>$ 8B (0.339)
+    \item \textbf{Qwen3-VL:} 2B (0.335) $>$ 8B (0.324) $>$ 4B (0.309)
+    \item \textbf{Qwen3.5:} 4B (0.340) $>$ 9B (0.336)
+\end{itemize}
+
+This pattern suggests that for specialized medical VQA, instruction tuning quality and vision encoder architecture matter more than raw parameter count. The smallest competitive model, Qwen3.5-0.8B (rank 15, primary 0.318), outperforms several 7--8B models.
+
+\subsection{Generational Improvements}
+
+Current-generation models consistently outperform their predecessors:
+
+\begin{itemize}
+    \item \textbf{InternVL3.5} (avg 0.344) vs.\ \textbf{InternVL2} (avg 0.289): +19\% improvement
+    \item \textbf{Qwen3-VL} (avg 0.321) vs.\ \textbf{Qwen2.5-VL} (avg 0.276): +16\% improvement
+\end{itemize}
+
+These gains likely reflect improvements in vision encoder pre-training, instruction tuning methodology, and training data quality rather than architectural changes alone.
+
+\subsection{Medical Specialization Does Not Help}
+
+Medical-specialized models underperform their general-purpose counterparts:
+
+\begin{itemize}
+    \item \textbf{MedGemma-4b} (0.299) $<$ \textbf{gemma-3-4b-it} (0.325) at the same parameter count
+    \item \textbf{MedVLM-R1} (0.318) performs mid-table (rank 14) despite medical fine-tuning
+\end{itemize}
+
+Fetal ultrasound is a highly specialized subdomain within medical imaging. Medical pre-training that focuses on radiology, pathology, or general clinical text may not transfer effectively to obstetric ultrasound interpretation. Additionally, our VQA format requires structured text generation where general language ability may be more important than domain knowledge.
+
+\subsection{Mixture-of-Experts Architectures}
+
+MoE models achieve competitive accuracy with fewer active parameters:
+
+\begin{itemize}
+    \item \textbf{Qwen3.5-35B-A3B} (rank 2, 3B active): competitive with the dense 12B leader
+    \item \textbf{Kimi-VL-A3B} (rank 9, 3B active): top-10 performance
+\end{itemize}
+
+This has practical implications for deployment: MoE models can run on consumer hardware while matching or exceeding the accuracy of much larger dense models.
+
+\subsection{Thinking Modes Degrade Performance}
+
+Models with extended reasoning (``thinking'') modes consistently underperform their standard instruction-following variants:
+
+\begin{itemize}
+    \item \textbf{Kimi-VL-A3B-Instruct} (0.333) $>$ \textbf{Kimi-VL-A3B-Thinking} (0.309)
+    \item \textbf{Qwen3-VL-8B-Instruct} (0.324) $>$ \textbf{Qwen3-VL-8B-Thinking} (0.315)
+\end{itemize}
+
+Structured VQA with short, factual answers benefits from direct responses. Chain-of-thought reasoning introduces verbosity and potential error propagation without improving accuracy on questions that require recognition rather than multi-step inference.
+
+\subsection{Score Ceiling Analysis}
+
+All 42 models cluster between 0.12--0.36 primary score, with a clear ceiling around 36\%. This likely reflects three factors:
+
+\begin{enumerate}
+    \item \textbf{Metric strictness:} Questions Q1--Q3 use exact or keyword matching that penalizes semantically correct but differently worded answers (evidenced by the primary/embedding divergence).
+    \item \textbf{Task difficulty:} Biometric measurements (Q4) and gestational age estimation (Q5) are inherently challenging from single images without clinical context.
+    \item \textbf{Zero-shot limitation:} Models have no exposure to the specific question format or annotation conventions. Prior work on fine-tuning Qwen2.5-VL-7B achieved 81.1\% embedding similarity on a 600-image subset, suggesting fine-tuning can substantially exceed the zero-shot ceiling.
+\end{enumerate}
+
+\subsection{Limitations}
+
+\begin{itemize}
+    \item \textbf{Single scoring framework:} Alternative metrics or weighting schemes may produce different rankings.
+    \item \textbf{Zero-shot only:} This benchmark does not capture fine-tuning potential, which may change the relative ordering of models.
+    \item \textbf{No human validation:} Embedding similarity and specialized metrics have not been validated against expert clinical judgment.
+    \item \textbf{English only:} All questions and annotations are in English; multilingual performance is untested.
+    \item \textbf{vLLM compatibility:} 13 additional models could not be evaluated due to vLLM architecture incompatibilities, potentially excluding strong performers.
+\end{itemize}
+
+\section{Conclusion}
+
+This work establishes the first large-scale benchmark for vision-language models on fetal ultrasound visual question answering. Our evaluation of 42 models across 14 anatomical categories yields several actionable findings:
+
+\begin{enumerate}
+    \item \textbf{General-purpose current-gen VLMs are the strongest zero-shot performers.} The top 3 models (Gemma 3, Qwen3.5, InternVL3.5) are all general-purpose, current-generation models.
+    \item \textbf{Model size does not predict performance.} Smaller, well-tuned models frequently outperform larger variants within the same family.
+    \item \textbf{Medical specialization does not confer advantages} on this niche subdomain.
+    \item \textbf{MoE architectures offer the best efficiency/accuracy tradeoff} for potential deployment scenarios.
+    \item \textbf{Thinking/reasoning modes hurt performance} on structured VQA tasks.
+    \item \textbf{A 36\% zero-shot ceiling exists} that fine-tuning is expected to overcome.
+\end{enumerate}
+
+Future work will focus on fine-tuning the top performers on the training set, validating scoring metrics against human expert judgment, and exploring multi-language evaluation.
+
+\section*{Acknowledgments}
+
+This research was conducted on RCCG H100 GPU infrastructure. Model inference used the vLLM framework. Ground truth annotations were provided by a qualified sonographer. We acknowledge the developers of all 42 models evaluated in this benchmark.
+
+\end{document}

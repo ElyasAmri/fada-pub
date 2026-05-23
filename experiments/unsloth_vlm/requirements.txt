@@ -1,0 +1,31 @@
+# Unsloth VLM Fine-tuning Requirements
+# Install with: pip install -r requirements.txt
+
+# Unsloth with CUDA support (RTX 5090, CUDA 12.8)
+# Adjust cu version to match your CUDA installation
+unsloth[cu124-torch250]
+
+# HuggingFace TRL for SFTTrainer
+trl>=0.11.0
+
+# Dataset handling
+datasets>=2.18.0
+
+# Image processing
+pillow>=10.0.0
+
+# Excel file reading
+openpyxl>=3.1.0
+
+# Data manipulation
+pandas>=2.0.0
+
+# Progress bars
+tqdm>=4.66.0
+
+# Evaluation metrics
+scikit-learn>=1.4.0
+
+# Optional: For response quality metrics
+# rouge-score>=0.1.2
+# sentence-transformers>=2.2.0

@@ -1,0 +1,101 @@
+# FADA Model Configuration
+# API and local model settings for VLM inference
+
+# Gemini API Models
+gemini:
+  default_model: "gemini-3-pro-preview"
+  thinking_level: "low"
+  max_retries: 3
+  retry_delay: 1.0
+  generation:
+    temperature: 0.4
+    max_output_tokens: 1024
+  available_models:
+    - id: "gemini-3-pro-preview"
+      name: "Gemini 3 Pro (Preview)"
+    - id: "gemini-2.5-pro-exp-03-25"
+      name: "Gemini 2.5 Pro (Experimental)"
+    - id: "gemini-2.5-flash"
+      name: "Gemini 2.5 Flash"
+    - id: "gemini-2.0-flash-exp"
+      name: "Gemini 2.0 Flash (Experimental)"
+    - id: "gemini-1.5-flash"
+      name: "Gemini 1.5 Flash"
+    - id: "gemini-1.5-pro"
+      name: "Gemini 1.5 Pro"
+
+# Grok API Models (xAI)
+grok:
+  default_model: "grok-4"
+  base_url: "https://api.x.ai/v1"
+  max_retries: 3
+  retry_delay: 1.0
+  generation:
+    temperature: 0.4
+    max_tokens: 1024
+  available_models:
+    - id: "grok-4"
+      name: "Grok 4"
+    - id: "grok-4-fast"
+      name: "Grok 4 Fast"
+    - id: "grok-2-vision-latest"
+      name: "Grok 2 Vision (Latest)"
+    - id: "grok-2-vision-1212"
+      name: "Grok 2 Vision (Dec 2024)"
+
+# Local VLM Models (HuggingFace)
+local:
+  default_models:
+    - "minicpm"
+    - "internvl2_2b"
+    - "moondream"
+  gpu_8gb: true
+  use_4bit: true
+  available_models:
+    minicpm:
+      model_id: "openbmb/MiniCPM-V-2_6"
+      display_name: "MiniCPM-V-2.6"
+      use_4bit: true
+    internvl2_2b:
+      model_id: "OpenGVLab/InternVL2-2B"
+      display_name: "InternVL2-2B"
+      use_4bit: true
+    internvl2_4b:
+      model_id: "OpenGVLab/InternVL2-4B"
+      display_name: "InternVL2-4B"
+      use_4bit: true
+    moondream:
+      model_id: "vikhyatk/moondream2"
+      display_name: "Moondream2"
+      use_4bit: false
+    qwen2vl:
+      model_id: "Qwen/Qwen2-VL-2B-Instruct"
+      display_name: "Qwen2-VL-2B"
+      use_4bit: true
+
+# Classification Model
+classification:
+  model_paths:
+    - "models/best_model_efficientnet_b0_12class.pth"
+    - "models/best_model_efficientnet_b0.pth"
+    - "models/best_model.pth"
+  backbone: "efficientnet_b0"
+  num_classes: 12
+  image_size: 224
+
+# VQA Model (BLIP-2)
+vqa:
+  base_path: "outputs/blip2_1epoch/final_model"
+  device: "auto"
+  category_models:
+    abdomen: "outputs/blip2_abdomen/final_model"
+    femur: "outputs/blip2_femur/final_model"
+    thorax: "outputs/blip2_thorax/final_model"
+    standard_nt: "outputs/blip2_standard_nt/final_model"
+
+# Confidence Thresholds
+# These values are used to categorize classification confidence levels
+thresholds:
+  high_confidence: 0.85
+  good_confidence: 0.70
+  moderate_confidence: 0.50

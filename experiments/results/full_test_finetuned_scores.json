@@ -1,0 +1,113 @@
+{
+  "scoring_pipeline": "v4.0",
+  "ground_truth": "data\\Fetal Ultrasound Annotations Normalized.xlsx",
+  "ranking_metric": "embedding_similarity_mean",
+  "embedding_model": "all-mpnet-base-v2",
+  "scores": [
+    {
+      "rank": 1,
+      "run": "fada-7_gemma-3-4b",
+      "embedding_similarity_mean": 0.653715,
+      "primary_score_mean": 0.424939,
+      "samples": 15080
+    },
+    {
+      "rank": 2,
+      "run": "fada-4_qwen2-vl-7b-ft",
+      "embedding_similarity_mean": 0.653326,
+      "primary_score_mean": 0.423945,
+      "samples": 15080
+    },
+    {
+      "rank": 3,
+      "run": "fada-2_medgemma-4b",
+      "embedding_similarity_mean": 0.652206,
+      "primary_score_mean": 0.425227,
+      "samples": 15080
+    },
+    {
+      "rank": 4,
+      "run": "fada-5_qwen3-vl-4b-5ep",
+      "embedding_similarity_mean": 0.651569,
+      "primary_score_mean": 0.423003,
+      "samples": 15080
+    },
+    {
+      "rank": 5,
+      "run": "fada-1_gemma-3-12b",
+      "embedding_similarity_mean": 0.651138,
+      "primary_score_mean": 0.425642,
+      "samples": 15080
+    },
+    {
+      "rank": 6,
+      "run": "fada-3_qwen2.5-vl-3b-5ep",
+      "embedding_similarity_mean": 0.649587,
+      "primary_score_mean": 0.420771,
+      "samples": 15080
+    },
+    {
+      "rank": 7,
+      "run": "fada-2_qwen2.5-vl-7b-lr1e4",
+      "embedding_similarity_mean": 0.636968,
+      "primary_score_mean": 0.418011,
+      "samples": 15080
+    },
+    {
+      "rank": 8,
+      "run": "fada-4_qwen3-vl-8b-5ep",
+      "embedding_similarity_mean": 0.633204,
+      "primary_score_mean": 0.414227,
+      "samples": 15080
+    },
+    {
+      "rank": 9,
+      "run": "fada-1_qwen2.5-vl-7b-ft",
+      "embedding_similarity_mean": 0.625897,
+      "primary_score_mean": 0.417757,
+      "samples": 15080
+    },
+    {
+      "rank": 10,
+      "run": "fada-6_qwen2-vl-7b-f6",
+      "embedding_similarity_mean": 0.615031,
+      "primary_score_mean": 0.411397,
+      "samples": 15080
+    },
+    {
+      "rank": 11,
+      "run": "fada-3_internvl3.5-2b-hf",
+      "embedding_similarity_mean": 0.03731,
+      "primary_score_mean": 0.110738,
+      "samples": 15080
+    },
+    {
+      "rank": 12,
+      "run": "fada-3_internvl3.5-8b",
+      "embedding_similarity_mean": 0.03731,
+      "primary_score_mean": 0.110738,
+      "samples": 15080
+    },
+    {
+      "rank": 13,
+      "run": "fada-4_internvl3-8b",
+      "embedding_similarity_mean": 0.03731,
+      "primary_score_mean": 0.110738,
+      "samples": 15080
+    },
+    {
+      "rank": 14,
+      "run": "fada-4_internvl3.5-1b-hf",
+      "embedding_similarity_mean": 0.03731,
+      "primary_score_mean": 0.110738,
+      "samples": 15080
+    },
+    {
+      "rank": 15,
+      "run": "fada-6_internvl3.5-2b-hf",
+      "embedding_similarity_mean": 0.03731,
+      "primary_score_mean": 0.110738,
+      "samples": 15080
+    }
+  ]
+}
