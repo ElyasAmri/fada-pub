@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FADA Ultrasound</string>
+
+    <!-- Main screen -->
+    <string name="main_title">FADA</string>
+    <string name="main_subtitle">Fetal Ultrasound Classifier</string>
+    <string name="select_image_hint">Select an ultrasound image</string>
+    <string name="classify_button">Classify Image</string>
+    <string name="camera_button">Camera</string>
+    <string name="gallery_button">Gallery</string>
+    <string name="view_results">View Results</string>
+
+    <!-- Results screen -->
+    <string name="results_title">Classification Results</string>
+    <string name="predicted_view">Predicted View</string>
+    <string name="confidence">Confidence</string>
+    <string name="all_predictions">All Predictions</string>
+    <string name="new_image">New Image</string>
+    <string name="done">Done</string>
+    <string name="no_results">No classification results available</string>
+
+    <!-- Camera screen -->
+    <string name="camera_title">Capture Image</string>
+    <string name="camera_permission_required">Camera Permission Required</string>
+    <string name="camera_permission_message">To capture ultrasound images, please grant camera access.</string>
+    <string name="go_back">Go Back</string>
+
+    <!-- Confidence levels -->
+    <string name="confidence_high">High confidence</string>
+    <string name="confidence_good">Good confidence</string>
+    <string name="confidence_moderate">Moderate confidence</string>
+    <string name="confidence_low">Low confidence</string>
+
+    <!-- Loading messages -->
+    <string name="loading_model">Initializing model...</string>
+    <string name="loading_image">Loading image...</string>
+    <string name="analyzing_image">Analyzing image...</string>
+
+    <!-- Errors -->
+    <string name="error_model_init">Failed to initialize model</string>
+    <string name="error_image_load">Failed to load image</string>
+    <string name="error_classification">Classification failed</string>
+    <string name="error_no_image">No image selected</string>
+    <string name="error_model_not_ready">Model not ready</string>
+</resources>

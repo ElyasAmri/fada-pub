@@ -1,0 +1,3 @@
+# Placeholder for TFLite model
+# Run: python app/android/export_model_tflite.py
+# This will create: fada_classifier.tflite
